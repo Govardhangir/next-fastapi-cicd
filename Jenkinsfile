@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     triggers {
-        githubPush()
+        githubPullRequest()
     }
 
     stages {
@@ -11,17 +11,6 @@ pipeline {
                 checkout scm
             }
         }
-
-        stage('Build') {
-            steps {
-                echo "Building application..."
-            }
-        }
-
-        stage('Test') {
-            steps {
-                echo "Running tests..."
-            }
-        }
     }
 }
+
