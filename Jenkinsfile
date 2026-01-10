@@ -41,10 +41,11 @@ pipeline {
                 echo "Running backend tests with Pytest..."
                 dir('backend') {
                     sh '''
-                        pytest -v
+                        python3 -m pytest -v
                     '''
                 }
             }
         }
+
     }
 }
