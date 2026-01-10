@@ -17,4 +17,7 @@ aiohttp==3.9.0
 
 # Email
 aiosmtplib==2.0.0  # Async SMTP support
+pytest
+pytest-cov
+httpx==0.25.0
 

@@ -215,3 +215,8 @@ async def api_status():
         "message": "API is operational",
         "data": {"version": "1.0.0"}
     }
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
