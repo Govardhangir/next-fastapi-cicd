@@ -1,0 +1,25 @@
+# Environment files
+.env
+.env.*
+frontend/.env*
+backend/.env*
+
+# Node
+node_modules/
+.next/
+npm-debug.log
+yarn.lock
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+.venv
+
+# Docker
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
