@@ -55,23 +55,24 @@ pipeline {
 
         stage('SonarQube Scan') {
             steps {
-                withSonarQubeEnv('sonarqube') {
+                withSonarQubeEnv('SonarQube') {
                     sh '''
                         sonar-scanner \
-                          -Dsonar.projectKey=${SONAR_PROJECT_KEY_BACKEND} \
-                          -Dsonar.projectName=backend \
-                          -Dsonar.sources=backend \
-                          -Dsonar.language=py
+                        -Dsonar.projectKey=backend \
+                        -Dsonar.projectName=backend \
+                        -Dsonar.sources=backend \
+                        -Dsonar.language=py
                     '''
 
                     sh '''
                         sonar-scanner \
-                          -Dsonar.projectKey=${SONAR_PROJECT_KEY_FRONTEND} \
-                          -Dsonar.projectName=frontend \
-                          -Dsonar.sources=frontend \
-                          -Dsonar.language=js
+                        -Dsonar.projectKey=frontend \
+                        -Dsonar.projectName=frontend \
+                        -Dsonar.sources=frontend \
+                        -Dsonar.language=js
                     '''
                 }
+
             }
         }
     }
