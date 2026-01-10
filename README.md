@@ -3,6 +3,7 @@
 This project is organized into two main folders:
 
 ## Frontend (Next.js)
+##
 
 To run the frontend:
 
