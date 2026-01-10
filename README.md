@@ -46,3 +46,4 @@ This project includes the following integrations:
 
 
 # next-fastapi-cicd
+# next-fastapi-cicd
