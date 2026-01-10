@@ -2,17 +2,26 @@ pipeline {
     agent any
 
     triggers {
-        githubPullRequest()
+        githubPush()
     }
 
     stages {
-        stage('Checkout Code') {
+        stage('Checkout') {
             steps {
-                echo "Checking out source code from GitHub..."
                 checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo "Building application..."
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo "Running tests..."
             }
         }
     }
 }
-
-
