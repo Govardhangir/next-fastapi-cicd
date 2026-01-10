@@ -1,11 +1,16 @@
 pipeline {
     agent any
+
+    triggers {
+        githubPullRequest()
+    }
+
     stages {
-        stage('Placeholder') {
+        stage('Checkout Code') {
             steps {
-                echo 'Jenkinsfile placeholder'
+                echo "Checking out source code from GitHub..."
+                checkout scm
             }
         }
     }
 }
-
