@@ -50,7 +50,6 @@ This project includes the following integrations:
 # next-fastapi-cicd
 # next-fastapi-cicd
 
-=======
->>>>>>> a9d8208 (chore: retrigger PR)
+
 # retrigger pr
 # feature branch v2 test

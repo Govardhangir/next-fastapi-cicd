@@ -22,5 +22,18 @@ pipeline {
                 }
             }
         }
+
+        stage('Frontend Dependency Install') {
+            steps {
+                echo "Installing frontend Node.js dependencies..."
+                dir('frontend') {
+                    sh '''
+                        node --version
+                        npm --version
+                        npm ci
+                    '''
+                }
+            }
+        }
     }
 }
