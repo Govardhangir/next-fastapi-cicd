@@ -2,15 +2,15 @@ pipeline {
     agent any
 
     triggers {
-        githubPullRequest()
+        githubPullRequests()
     }
 
     stages {
-        stage('Checkout') {
+        stage('Checkout Code') {
             steps {
+                echo "Checking out source code from GitHub PR..."
                 checkout scm
             }
         }
     }
 }
-
