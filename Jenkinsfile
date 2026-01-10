@@ -35,5 +35,16 @@ pipeline {
                 }
             }
         }
+
+        stage('Backend Tests') {
+            steps {
+                echo "Running backend tests with Pytest..."
+                dir('backend') {
+                    sh '''
+                        pytest -v
+                    '''
+                }
+            }
+        }
     }
 }
