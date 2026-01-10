@@ -1,22 +1,22 @@
 pipeline {
     agent any
 
+    environment {
+        SONAR_PROJECT_KEY_BACKEND = "backend"
+        SONAR_PROJECT_KEY_FRONTEND = "frontend"
+    }
+
     stages {
         stage('Checkout Code') {
             steps {
-                echo "Checking out source code from GitHub..."
                 checkout scm
             }
         }
 
         stage('Backend Dependency Install') {
             steps {
-                echo "Installing backend Python dependencies..."
                 dir('backend') {
                     sh '''
-                        python3 --version
-                        pip3 --version
-                        pip3 install --upgrade pip
                         pip3 install -r requirements.txt
                     '''
                 }
@@ -25,11 +25,8 @@ pipeline {
 
         stage('Frontend Dependency Install') {
             steps {
-                echo "Installing frontend Node.js dependencies..."
                 dir('frontend') {
                     sh '''
-                        node --version
-                        npm --version
                         npm ci
                     '''
                 }
@@ -38,7 +35,6 @@ pipeline {
 
         stage('Backend Tests') {
             steps {
-                echo "Running backend tests with Pytest..."
                 dir('backend') {
                     sh '''
                         python3 -m pytest -v
@@ -49,7 +45,6 @@ pipeline {
 
         stage('Frontend Lint') {
             steps {
-                echo "Running frontend ESLint..."
                 dir('frontend') {
                     sh '''
                         npm run lint
@@ -58,12 +53,23 @@ pipeline {
             }
         }
 
-        stage('Frontend Tests') {
+        stage('SonarQube Scan') {
             steps {
-                echo "Running frontend tests with Jest..."
-                dir('frontend') {
+                withSonarQubeEnv('sonarqube') {
                     sh '''
-                        npm run test -- --watch=false
+                        sonar-scanner \
+                          -Dsonar.projectKey=${SONAR_PROJECT_KEY_BACKEND} \
+                          -Dsonar.projectName=backend \
+                          -Dsonar.sources=backend \
+                          -Dsonar.language=py
+                    '''
+
+                    sh '''
+                        sonar-scanner \
+                          -Dsonar.projectKey=${SONAR_PROJECT_KEY_FRONTEND} \
+                          -Dsonar.projectName=frontend \
+                          -Dsonar.sources=frontend \
+                          -Dsonar.language=js
                     '''
                 }
             }
