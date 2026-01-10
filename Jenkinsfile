@@ -1,11 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        SONAR_PROJECT_KEY_BACKEND = "backend"
-        SONAR_PROJECT_KEY_FRONTEND = "frontend"
-    }
-
     stages {
         stage('Checkout Code') {
             steps {
@@ -16,9 +11,7 @@ pipeline {
         stage('Backend Dependency Install') {
             steps {
                 dir('backend') {
-                    sh '''
-                        pip3 install -r requirements.txt
-                    '''
+                    sh 'pip3 install -r requirements.txt'
                 }
             }
         }
@@ -26,9 +19,7 @@ pipeline {
         stage('Frontend Dependency Install') {
             steps {
                 dir('frontend') {
-                    sh '''
-                        npm ci
-                    '''
+                    sh 'npm ci'
                 }
             }
         }
@@ -36,9 +27,7 @@ pipeline {
         stage('Backend Tests') {
             steps {
                 dir('backend') {
-                    sh '''
-                        python3 -m pytest -v
-                    '''
+                    sh 'python3 -m pytest -v'
                 }
             }
         }
@@ -46,9 +35,7 @@ pipeline {
         stage('Frontend Lint') {
             steps {
                 dir('frontend') {
-                    sh '''
-                        npm run lint
-                    '''
+                    sh 'npm run lint'
                 }
             }
         }
@@ -58,21 +45,28 @@ pipeline {
                 withSonarQubeEnv('SonarQube') {
                     sh '''
                         sonar-scanner \
-                        -Dsonar.projectKey=backend \
-                        -Dsonar.projectName=backend \
-                        -Dsonar.sources=backend \
-                        -Dsonar.language=py
+                          -Dsonar.projectKey=backend \
+                          -Dsonar.projectName=backend \
+                          -Dsonar.sources=backend \
+                          -Dsonar.language=py
                     '''
 
                     sh '''
                         sonar-scanner \
-                        -Dsonar.projectKey=frontend \
-                        -Dsonar.projectName=frontend \
-                        -Dsonar.sources=frontend \
-                        -Dsonar.language=js
+                          -Dsonar.projectKey=frontend \
+                          -Dsonar.projectName=frontend \
+                          -Dsonar.sources=frontend \
+                          -Dsonar.language=js
                     '''
                 }
+            }
+        }
 
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 2, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
             }
         }
     }
