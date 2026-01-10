@@ -49,3 +49,4 @@ This project includes the following integrations:
 # next-fastapi-cicd
 # next-fastapi-cicd
 # test PR trigger
+# test PR triggerssssss
