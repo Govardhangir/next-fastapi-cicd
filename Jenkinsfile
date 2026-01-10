@@ -57,5 +57,16 @@ pipeline {
                 }
             }
         }
+
+        stage('Frontend Tests') {
+            steps {
+                echo "Running frontend tests with Jest..."
+                dir('frontend') {
+                    sh '''
+                        npm run test -- --watch=false
+                    '''
+                }
+            }
+        }
     }
 }
