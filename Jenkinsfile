@@ -47,5 +47,15 @@ pipeline {
             }
         }
 
+        stage('Frontend Lint') {
+            steps {
+                echo "Running frontend ESLint..."
+                dir('frontend') {
+                    sh '''
+                        npm run lint
+                    '''
+                }
+            }
+        }
     }
 }
