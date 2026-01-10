@@ -49,13 +49,7 @@ This project includes the following integrations:
 
 # next-fastapi-cicd
 # next-fastapi-cicd
-<<<<<<< HEAD
-# test PR trigger
-# test PR triggerssssss
-# test PR triggerssssss
-# retrigger pr
-# retrigger pr
-# retrigger pr
+
 =======
 >>>>>>> a9d8208 (chore: retrigger PR)
 # retrigger pr
