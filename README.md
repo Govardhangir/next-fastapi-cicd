@@ -1,5 +1,7 @@
 # Generated Project with Next.js Frontend and FastAPI Backend
 
+
+##
 This project is organized into two main folders:
 
 ## Frontend (Next.js)
