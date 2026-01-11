@@ -80,6 +80,17 @@ pipeline {
                 '''
             }
         }
+        stage('Docker Image Build') {
+            steps {
+                echo "Building Docker images..."
+
+                sh '''
+                    docker build -t backend:ci ./backend
+                    docker build -t frontend:ci ./frontend
+                '''
+            }
+        }
+
 
     }
 }
