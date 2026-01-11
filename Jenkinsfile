@@ -90,6 +90,23 @@ pipeline {
                 '''
             }
         }
+        stage('Trivy Image Scan') {
+            steps {
+                echo "Running Trivy image vulnerability scan (demo mode)..."
+
+                sh '''
+                    trivy image \
+                    --exit-code 0 \
+                    --severity HIGH,CRITICAL \
+                    backend:ci
+
+                    trivy image \
+                    --exit-code 0 \
+                    --severity HIGH,CRITICAL \
+                    frontend:ci
+                '''
+            }
+        }
 
 
     }
