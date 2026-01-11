@@ -109,7 +109,7 @@ pipeline {
         }
         stage('Push Images to ECR') {
             environment {
-                AWS_REGION = "ap-south-1"
+                AWS_REGION = "us-east-1"
                 AWS_ACCOUNT_ID = "232518997630"
             }
 
