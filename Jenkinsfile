@@ -188,7 +188,7 @@ pipeline {
             }
 
             steps {
-                withCredentials([[
+                withCredentials([[ 
                     $class: 'AmazonWebServicesCredentialsBinding',
                     credentialsId: 'aws-ecr-creds'
                 ]]) {
@@ -203,6 +203,23 @@ pipeline {
                         docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/backend:latest
                         docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/frontend:latest
                     '''
+                }
+            }
+        }
+
+        /**********************************************
+         * Manual Approval for Production
+         **********************************************/
+        stage('Manual Approval for Production') {
+            steps {
+                script {
+                    sendDeploySlackMessage("⏸️ Waiting for MANUAL APPROVAL to deploy to PRODUCTION: ${env.JOB_NAME} #${env.BUILD_NUMBER}")
+
+                    input(
+                        message: 'Approve production deployment?',
+                        ok: 'Approve & Deploy',
+                        submitter: 'admin'
+                    )
                 }
             }
         }
