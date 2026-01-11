@@ -1,7 +1,32 @@
+/**********************************************
+ * Slack Helper Function (TOP of FILE)
+ **********************************************/
+def sendSlackMessage(String message) {
+    withCredentials([string(credentialsId: 'slack-webhook-ci', variable: 'SLACK_WEBHOOK')]) {
+        sh """
+          curl -X POST -H 'Content-type: application/json' \
+          --data '{\"text\":\"${message}\"}' \
+          \$SLACK_WEBHOOK
+        """
+    }
+}
+
 pipeline {
     agent any
 
     stages {
+
+        /**********************************************
+         * Pipeline Start Notification
+         **********************************************/
+        stage('Pipeline Start') {
+            steps {
+                script {
+                    sendSlackMessage("🔄 CI started: ${env.JOB_NAME} #${env.BUILD_NUMBER}")
+                }
+            }
+        }
+
         stage('Checkout Code') {
             steps {
                 checkout scm
@@ -43,6 +68,7 @@ pipeline {
         stage('SonarQube Scan') {
             steps {
                 withSonarQubeEnv('SonarQube') {
+
                     sh '''
                         sonar-scanner \
                           -Dsonar.projectKey=backend \
@@ -69,6 +95,7 @@ pipeline {
                 }
             }
         }
+
         stage('Trivy Filesystem Scan') {
             steps {
                 echo "Running Trivy filesystem vulnerability scan..."
@@ -80,19 +107,20 @@ pipeline {
                 '''
             }
         }
+
         stage('Docker Image Build') {
             steps {
                 echo "Building Docker images..."
-
                 sh '''
                     docker build -t backend:ci ./backend
                     docker build -t frontend:ci ./frontend
                 '''
             }
         }
+
         stage('Trivy Image Scan') {
             steps {
-                echo "Running Trivy image vulnerability scan (demo mode)..."
+                echo "Running Trivy image vulnerability scan..."
 
                 sh '''
                     trivy image \
@@ -107,6 +135,7 @@ pipeline {
                 '''
             }
         }
+
         stage('Push Images to ECR') {
             environment {
                 AWS_REGION = "us-east-1"
@@ -136,7 +165,21 @@ pipeline {
                 }
             }
         }
+    }
 
-
+    /**********************************************
+     * Post Build Notifications
+     **********************************************/
+    post {
+        success {
+            script {
+                sendSlackMessage("✅ CI SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}")
+            }
+        }
+        failure {
+            script {
+                sendSlackMessage("❌ CI FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}")
+            }
+        }
     }
 }
