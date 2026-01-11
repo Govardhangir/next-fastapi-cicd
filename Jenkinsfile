@@ -65,6 +65,9 @@ pipeline {
             }
         }
 
+        /**********************************************
+         * SonarQube Scan
+         **********************************************/
         stage('SonarQube Scan') {
             steps {
                 withSonarQubeEnv('SonarQube') {
@@ -88,29 +91,47 @@ pipeline {
             }
         }
 
+        /**********************************************
+         * SonarQube Quality Gate (with Slack alert)
+         **********************************************/
         stage('Quality Gate') {
             steps {
-                timeout(time: 2, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
+                script {
+                    try {
+                        timeout(time: 2, unit: 'MINUTES') {
+                            waitForQualityGate abortPipeline: true
+                        }
+                    } catch (err) {
+                        sendSlackMessage("❌ SonarQube Quality Gate FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}")
+                        throw err
+                    }
                 }
             }
         }
 
+        /**********************************************
+         * Trivy Filesystem Scan (BLOCKING)
+         **********************************************/
         stage('Trivy Filesystem Scan') {
             steps {
-                echo "Running Trivy filesystem vulnerability scan..."
-                sh '''
-                    trivy fs \
-                    --exit-code 1 \
-                    --severity HIGH,CRITICAL \
-                    .
-                '''
+                script {
+                    try {
+                        sh '''
+                            trivy fs \
+                              --exit-code 1 \
+                              --severity HIGH,CRITICAL \
+                              .
+                        '''
+                    } catch (err) {
+                        sendSlackMessage("❌ Trivy FILESYSTEM scan FAILED (HIGH/CRITICAL): ${env.JOB_NAME} #${env.BUILD_NUMBER}")
+                        throw err
+                    }
+                }
             }
         }
 
         stage('Docker Image Build') {
             steps {
-                echo "Building Docker images..."
                 sh '''
                     docker build -t backend:ci ./backend
                     docker build -t frontend:ci ./frontend
@@ -118,24 +139,35 @@ pipeline {
             }
         }
 
+        /**********************************************
+         * Trivy Image Scan (BLOCKING)
+         **********************************************/
         stage('Trivy Image Scan') {
             steps {
-                echo "Running Trivy image vulnerability scan..."
+                script {
+                    try {
+                        sh '''
+                            trivy image \
+                              --exit-code 1 \
+                              --severity HIGH,CRITICAL \
+                              backend:ci
 
-                sh '''
-                    trivy image \
-                    --exit-code 0 \
-                    --severity HIGH,CRITICAL \
-                    backend:ci
-
-                    trivy image \
-                    --exit-code 0 \
-                    --severity HIGH,CRITICAL \
-                    frontend:ci
-                '''
+                            trivy image \
+                              --exit-code 1 \
+                              --severity HIGH,CRITICAL \
+                              frontend:ci
+                        '''
+                    } catch (err) {
+                        sendSlackMessage("❌ Trivy IMAGE scan FAILED (HIGH/CRITICAL): ${env.JOB_NAME} #${env.BUILD_NUMBER}")
+                        throw err
+                    }
+                }
             }
         }
 
+        /**********************************************
+         * Push Images to AWS ECR
+         **********************************************/
         stage('Push Images to ECR') {
             environment {
                 AWS_REGION = "us-east-1"
@@ -143,15 +175,11 @@ pipeline {
             }
 
             steps {
-                echo "Logging in to AWS ECR..."
-
                 withCredentials([[
                     $class: 'AmazonWebServicesCredentialsBinding',
                     credentialsId: 'aws-ecr-creds'
                 ]]) {
                     sh '''
-                        aws --version
-
                         aws ecr get-login-password --region $AWS_REGION | \
                         docker login --username AWS --password-stdin \
                         ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
