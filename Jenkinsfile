@@ -101,7 +101,7 @@ pipeline {
                 echo "Running Trivy filesystem vulnerability scan..."
                 sh '''
                     trivy fs \
-                    --exit-code 0 \
+                    --exit-code 1 \
                     --severity HIGH,CRITICAL \
                     .
                 '''
