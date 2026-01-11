@@ -11,6 +11,19 @@ def sendSlackMessage(String message) {
     }
 }
 
+/**********************************************
+ * Deployment Slack Helper Function
+ **********************************************/
+def sendDeploySlackMessage(String message) {
+    withCredentials([string(credentialsId: 'slack-webhook-deploy', variable: 'SLACK_WEBHOOK')]) {
+        sh """
+          curl -X POST -H 'Content-type: application/json' \
+          --data '{\"text\":\"${message}\"}' \
+          \$SLACK_WEBHOOK
+        """
+    }
+}
+
 pipeline {
     agent any
 
@@ -193,6 +206,17 @@ pipeline {
                 }
             }
         }
+
+        /**********************************************
+         * Deployment Started (Notification Only)
+         **********************************************/
+        stage('Deployment Started') {
+            steps {
+                script {
+                    sendDeploySlackMessage("🚀 Deployment STARTED: ${env.JOB_NAME} #${env.BUILD_NUMBER}")
+                }
+            }
+        }
     }
 
     /**********************************************
@@ -202,12 +226,19 @@ pipeline {
         success {
             script {
                 sendSlackMessage("✅ CI SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}")
+                sendDeploySlackMessage("✅ Deployment SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}")
             }
         }
         failure {
             script {
                 sendSlackMessage("❌ CI FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}")
+                sendDeploySlackMessage("❌ Deployment FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}")
             }
         }
     }
 }
+
+/**********************************************
+ * Rollback Notification (for future use)
+ **********************************************/
+// sendDeploySlackMessage("🔄 Rollback EXECUTED: ${env.JOB_NAME} #${env.BUILD_NUMBER}")
