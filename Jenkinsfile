@@ -30,6 +30,7 @@ pipeline {
     environment {
         ALB_LISTENER_ARN = 'arn:aws:elasticloadbalancing:us-east-1:232518997630:listener/app/prod-alb/d61981d011e80913/*'
         BLUE_TG_ARN     = 'arn:aws:elasticloadbalancing:us-east-1:232518997630:targetgroup/prod-blue-tg/da1fe206743a01f5'
+        AWS_REGION      = 'us-east-1'
     }
 
     stages {
@@ -187,7 +188,6 @@ pipeline {
          **********************************************/
         stage('Push Images to ECR') {
             environment {
-                AWS_REGION = "us-east-1"
                 AWS_ACCOUNT_ID = "232518997630"
             }
 
@@ -255,7 +255,7 @@ pipeline {
         }
 
         /**********************************************
-         * Rollback: Switch Traffic to BLUE (SAFE)
+         * Rollback: Switch Traffic to BLUE (REGION EXPLICIT)
          **********************************************/
         stage('Rollback: Switch Traffic to BLUE') {
             when {
@@ -270,6 +270,7 @@ pipeline {
                 ]]) {
                     sh '''
                       aws elbv2 modify-listener \
+                        --region $AWS_REGION \
                         --listener-arn $ALB_LISTENER_ARN \
                         --default-actions Type=forward,TargetGroupArn=$BLUE_TG_ARN
                     '''
