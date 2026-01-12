@@ -28,7 +28,7 @@ pipeline {
     agent any
 
     environment {
-        ALB_LISTENER_ARN = 'arn:aws:elasticloadbalancing:us-east-1:232518997630:listener/app/prod-alb/d61981d011e80913/*'
+        ALB_LISTENER_ARN = 'arn:aws:elasticloadbalancing:us-east-1:232518997630:listener/app/prod-alb/d61981d011e80913/684277bc44b75d9a'
         BLUE_TG_ARN     = 'arn:aws:elasticloadbalancing:us-east-1:232518997630:targetgroup/prod-blue-tg/da1fe206743a01f5'
         AWS_REGION      = 'us-east-1'
     }
