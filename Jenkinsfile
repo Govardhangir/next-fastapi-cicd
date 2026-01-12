@@ -86,7 +86,7 @@ pipeline {
 
         /**********************************************
          * Frontend Tests (ADDED — NO MODIFICATIONS)
-         **********************************************
+         **********************************************/
         stage('Frontend Tests') {
             steps {
                 echo "Running frontend tests with Jest..."
@@ -97,7 +97,7 @@ pipeline {
                 }
             }
         }
-        /
+        
 
         /**********************************************
          * SonarQube Scan
