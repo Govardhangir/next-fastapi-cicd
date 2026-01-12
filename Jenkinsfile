@@ -85,6 +85,20 @@ pipeline {
         }
 
         /**********************************************
+         * Frontend Tests (ADDED — NO MODIFICATIONS)
+         **********************************************/
+        stage('Frontend Tests') {
+            steps {
+                echo "Running frontend tests with Jest..."
+                dir('frontend') {
+                    sh '''
+                        npm run test -- --watch=false
+                    '''
+                }
+            }
+        }
+
+        /**********************************************
          * SonarQube Scan
          **********************************************/
         stage('SonarQube Scan') {
@@ -255,7 +269,7 @@ pipeline {
         }
 
         /**********************************************
-         * Rollback: Switch Traffic to BLUE (REGION EXPLICIT)
+         * Rollback: Switch Traffic to BLUE
          **********************************************/
         stage('Rollback: Switch Traffic to BLUE') {
             when {
@@ -297,5 +311,3 @@ pipeline {
         }
     }
 }
-
-
