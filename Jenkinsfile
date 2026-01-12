@@ -105,7 +105,7 @@ pipeline {
         }
 
         /**********************************************
-         * SonarQube Quality Gate (with Slack alert)
+         * SonarQube Quality Gate
          **********************************************/
         stage('Quality Gate') {
             steps {
@@ -123,7 +123,7 @@ pipeline {
         }
 
         /**********************************************
-         * Trivy Filesystem Scan (BLOCKING)
+         * Trivy Filesystem Scan
          **********************************************/
         stage('Trivy Filesystem Scan') {
             steps {
@@ -136,7 +136,7 @@ pipeline {
                               .
                         '''
                     } catch (err) {
-                        sendSlackMessage("❌ Trivy FILESYSTEM scan FAILED (HIGH/CRITICAL): ${env.JOB_NAME} #${env.BUILD_NUMBER}")
+                        sendSlackMessage("❌ Trivy FILESYSTEM scan FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}")
                         throw err
                     }
                 }
@@ -153,7 +153,7 @@ pipeline {
         }
 
         /**********************************************
-         * Trivy Image Scan (BLOCKING)
+         * Trivy Image Scan
          **********************************************/
         stage('Trivy Image Scan') {
             steps {
@@ -171,7 +171,7 @@ pipeline {
                               frontend:ci
                         '''
                     } catch (err) {
-                        sendSlackMessage("❌ Trivy IMAGE scan FAILED (HIGH/CRITICAL): ${env.JOB_NAME} #${env.BUILD_NUMBER}")
+                        sendSlackMessage("❌ Trivy IMAGE scan FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}")
                         throw err
                     }
                 }
@@ -225,7 +225,7 @@ pipeline {
         }
 
         /**********************************************
-         * Deployment Started (Notification Only)
+         * Deployment Started
          **********************************************/
         stage('Deployment Started') {
             steps {
@@ -236,7 +236,7 @@ pipeline {
         }
 
         /**********************************************
-         * Manual Rollback Trigger (NEW)
+         * Manual Rollback Trigger
          **********************************************/
         stage('Manual Rollback Trigger') {
             steps {
@@ -245,6 +245,26 @@ pipeline {
                     ok: 'ROLLBACK',
                     submitter: 'admin'
                 )
+            }
+        }
+
+        /**********************************************
+         * Rollback: Switch Traffic to BLUE (REAL FIX)
+         **********************************************/
+        stage('Rollback: Switch Traffic to BLUE') {
+            steps {
+                echo "Rolling back traffic to BLUE environment..."
+
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-ecr-creds'
+                ]]) {
+                    sh '''
+                      aws elbv2 modify-listener \
+                        --listener-arn <ALB_LISTENER_ARN> \
+                        --default-actions Type=forward,TargetGroupArn=<BLUE_TARGET_GROUP_ARN>
+                    '''
+                }
             }
         }
     }
@@ -272,6 +292,3 @@ pipeline {
  * Rollback Notification (for future use)
  **********************************************/
 // sendDeploySlackMessage("🔄 Rollback EXECUTED: ${env.JOB_NAME} #${env.BUILD_NUMBER}")
-
-
-
