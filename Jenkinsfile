@@ -27,6 +27,11 @@ def sendDeploySlackMessage(String message) {
 pipeline {
     agent any
 
+    environment {
+        ALB_LISTENER_ARN = 'arn:aws:elasticloadbalancing:us-east-1:232518997630:listener/app/prod-alb/d61981d011e80913/*'
+        BLUE_TG_ARN     = 'arn:aws:elasticloadbalancing:us-east-1:232518997630:targetgroup/prod-blue-tg/da1fe206743a01f5'
+    }
+
     stages {
 
         /**********************************************
@@ -84,7 +89,6 @@ pipeline {
         stage('SonarQube Scan') {
             steps {
                 withSonarQubeEnv('SonarQube') {
-
                     sh '''
                         sonar-scanner \
                           -Dsonar.projectKey=backend \
@@ -236,22 +240,27 @@ pipeline {
         }
 
         /**********************************************
-         * Manual Rollback Trigger
+         * Manual Rollback Trigger (CONDITIONAL FLAG)
          **********************************************/
         stage('Manual Rollback Trigger') {
             steps {
-                input(
-                    message: 'Rollback production to BLUE environment?',
-                    ok: 'ROLLBACK',
-                    submitter: 'admin'
-                )
+                script {
+                    env.ROLLBACK_APPROVED = input(
+                        message: 'Rollback production to BLUE environment?',
+                        ok: 'ROLLBACK',
+                        submitter: 'admin'
+                    )
+                }
             }
         }
 
         /**********************************************
-         * Rollback: Switch Traffic to BLUE (REAL FIX)
+         * Rollback: Switch Traffic to BLUE (SAFE)
          **********************************************/
         stage('Rollback: Switch Traffic to BLUE') {
+            when {
+                expression { env.ROLLBACK_APPROVED != null }
+            }
             steps {
                 echo "Rolling back traffic to BLUE environment..."
 
@@ -261,8 +270,8 @@ pipeline {
                 ]]) {
                     sh '''
                       aws elbv2 modify-listener \
-                        --listener-arn <ALB_LISTENER_ARN> \
-                        --default-actions Type=forward,TargetGroupArn=<BLUE_TARGET_GROUP_ARN>
+                        --listener-arn $ALB_LISTENER_ARN \
+                        --default-actions Type=forward,TargetGroupArn=$BLUE_TG_ARN
                     '''
                 }
             }
@@ -287,8 +296,3 @@ pipeline {
         }
     }
 }
-
-/**********************************************
- * Rollback Notification (for future use)
- **********************************************/
-// sendDeploySlackMessage("🔄 Rollback EXECUTED: ${env.JOB_NAME} #${env.BUILD_NUMBER}")
