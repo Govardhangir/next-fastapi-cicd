@@ -188,7 +188,7 @@ pipeline {
             }
 
             steps {
-                withCredentials([[ 
+                withCredentials([[
                     $class: 'AmazonWebServicesCredentialsBinding',
                     credentialsId: 'aws-ecr-creds'
                 ]]) {
@@ -234,6 +234,19 @@ pipeline {
                 }
             }
         }
+
+        /**********************************************
+         * Manual Rollback Trigger (NEW)
+         **********************************************/
+        stage('Manual Rollback Trigger') {
+            steps {
+                input(
+                    message: 'Rollback production to BLUE environment?',
+                    ok: 'ROLLBACK',
+                    submitter: 'admin'
+                )
+            }
+        }
     }
 
     /**********************************************
@@ -259,6 +272,3 @@ pipeline {
  * Rollback Notification (for future use)
  **********************************************/
 // sendDeploySlackMessage("🔄 Rollback EXECUTED: ${env.JOB_NAME} #${env.BUILD_NUMBER}")
-
-
-
